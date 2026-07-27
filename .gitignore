@@ -1,0 +1,9 @@
+# Fichiers de configuration secrets
+.env
+
+# Dépendances Node.js (trop lourdes)
+node_modules/
+
+# Fichiers de build ou système
+.DS_Store
+Thumps.db

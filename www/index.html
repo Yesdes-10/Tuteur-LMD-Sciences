@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuteur LMD Sciences CI</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="logo.png">
+    <!-- Correction : Chargement officiel de la bibliothèque Tesseract.js pour l'OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <!-- CARTE D'ACCUEIL : SÉLECTEUR DE PARCOURS LMD -->
+        <div class="card search-box">
+            <button id="theme-btn" aria-label="Changer de thème" title="Changer de thème">🌙</button>
+            <h1>Tuteur LMD Sciences Côte d'Ivoire</h1>
+            <p class="subtitle">Sélectionnez votre niveau et votre parcours officiel (Maquette UFHB / UNA) :</p>
+            
+            <div class="subject-selector" id="subject-selector">
+                <button class="subject-btn" data-subject="l1_mi">📐 L1 - MI (Semestres 1 & 2)</button>
+                <button class="subject-btn" data-subject="l1_pc">🧪 L1 - PC (Semestres 1 & 2)</button>
+                <button class="subject-btn" data-subject="l2_info">💻 L2 - Informatique (S3 & S4)</button>
+                <button class="subject-btn" data-subject="l3_maths">📊 L3 - Mathématiques (S5 & S6)</button>
+            </div>
+
+            <div class="chapters-container" id="chapters-box" style="display: none;">
+                <h3 id="selected-level-title">Unités d'Enseignement (UE) disponibles :</h3>
+                <div class="chapters-grid" id="chapters-list"></div>
+            </div>
+
+            <div class="divider">ou saisissez une notion spécifique :</div>
+
+            <div class="input-group">
+                <input type="text" id="course-topic" placeholder="Ex: Intégrale de Riemann, Structures conditionnelles en C...">
+                <button id="scan-btn" aria-label="Scanner un exercice" title="Scanner une fiche de TD papier">📷</button>
+                <button id="learn-btn">Lancer le Cours 🚀</button>
+            </div>
+
+            <div id="camera-container" style="display: none; margin-top: 15px;">
+                <video id="webcam" autoplay playsinline width="100%" style="border-radius: 8px; transform: scaleX(-1);"></video>
+                <button id="capture-btn" style="background-color: #ef4444; width: 100%; margin-top: 10px;">📸 Capturer l'exercice</button>
+            </div>
+        </div>
+
+        <!-- ZONE D'AFFICHAGE ET EXPORT -->
+        <div class="card content-card" id="output-card" style="display: none;">
+            <div id="timer-banner" class="timer-alert">
+                ⏳ Séance d'étude obligatoire en cours : <span id="timer-clock">05:00</span> avant de débloquer les exercices et examens.
+            </div>
+            <div class="learning-tabs">
+                <button class="view-tab-btn active" id="btn-show-summary">📚 Synthèse de l'UE</button>
+                <button class="view-tab-btn" id="btn-show-quiz">✍️ Évaluation / Partiel</button>
+                <div class="export-actions">
+                    <button id="btn-copy-summary" aria-label="Copier le cours" title="Copier le cours">📋</button>
+                    <select id="exam-type" title="Choisir le format d'export">
+                        <option value="normale">Session Normale</option>
+                        <option value="rattrapage">Session de Rattrapage</option>
+                    </select>
+                    <button id="btn-download-summary" aria-label="Télécharger la fiche" title="Télécharger le sujet d'examen officiel">💾</button>
+                </div>
+            </div>
+            <div id="graph-section" style="display: none;"></div>
+            <div id="explanation-section" class="tab-content"></div>
+            <div id="ia-chat-box" style="display: none;">
+                <h3>💬 Questions au Professeur LMD</h3>
+                <div id="chat-messages"></div>
+                <div class="chat-input-group">
+                    <input type="text" id="chat-user-input" placeholder="Posez une question sur cette UE...">
+                    <button id="chat-send-btn">Envoyer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPOSANT : CASIER NUMÉRIQUE TD & TP -->
+        <div class="card locker-card" id="locker-box">
+            <h2>📁 Mon Casier Numérique (Espace TD / TP)</h2>
+            <div class="locker-upload-form">
+                <input type="text" id="document-name" placeholder="Nom du document (Ex: TD 2 Électromagnétisme)">
+                <select id="document-type">
+                    <option value="TD">Travaux Dirigés (TD)</option>
+                    <option value="TP">Travaux Pratiques (TP)</option>
+                </select>
+                <input type="file" id="file-chooser" style="display: none;">
+                <button id="btn-trigger-file">Sélectionner un fichier</button>
+                <button id="btn-save-document" style="background-color: #10b981;">Ajouter au Casier ➕</button>
+            </div>
+            <p id="selected-file-label" style="font-size: 12px; color: #64748b; margin: 5px 0 0 0; font-style: italic;"></p>
+            <ul id="locker-list"></ul>
+        </div>
+
+        <!-- RELEVÉ DE CRÉDITS -->
+        <div class="card history-card" id="academic-history-box">
+            <div class="history-header">
+                <h2>Crédits UE Validés (Système LMD)</h2>
+                <button id="clear-history-btn" aria-label="Effacer l'historique" title="Réinitialiser mon relevé">🗑️</button>
+            </div>
+            <ul id="academic-history-list"></ul>
+        </div>
+
+    </div>
+
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

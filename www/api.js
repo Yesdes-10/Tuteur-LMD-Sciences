@@ -7,8 +7,8 @@
 const PROXY_BASE_URL = "https://tuteur-lmd-sciences.onrender.com/api/generer-cours";
 
 const API_CONFIG = {
-    TIMEOUT_MS: 15000, // 15 secondes max par requête
-    MAX_RETRIES: 3     // Nombre de tentatives en cas de réseau instable
+    TIMEOUT_MS: 60000, // 60 secondes (largement suffisant)
+    MAX_RETRIES: 2     // 2 tentatives suffisent pour ne pas épuiser le quota
 };
 
 /**

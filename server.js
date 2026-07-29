@@ -19,7 +19,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 // 3. BOUCLIER ANTI-SPAM
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000,
-    max: 15,
+    max: 100, // <-- Augmentez cette limite pour vos tests
     message: { 
         erreur: "⏳ Limite de requêtes atteinte. Prenez 10 minutes pour relire vos cours avant de poser une nouvelle question !" 
     },

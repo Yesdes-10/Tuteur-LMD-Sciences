@@ -4,6 +4,8 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 
 const app = express();
+// 🛠️ AJOUT CRUCIAL : Dire à Express de faire confiance au proxy de Render
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // 1. SÉCURITÉ CORS

@@ -4,7 +4,7 @@
 
 // ⚠️ IMPORTANT : Remplacez "localhost" par votre adresse IP locale (ex: 192.168.1.15) 
 // si vous testez l'application sur un vrai smartphone ou un émulateur !
-const PROXY_BASE_URL = "https://https://tuteur-lmd-sciences.onrender.com/api/generer-cours";
+const PROXY_BASE_URL = "https://tuteur-lmd-sciences.onrender.com/api/generer-cours";
 
 const API_CONFIG = {
     TIMEOUT_MS: 15000, // 15 secondes max par requête

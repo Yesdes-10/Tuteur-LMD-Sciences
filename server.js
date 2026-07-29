@@ -94,6 +94,10 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-
         }
     }
 });
+// Route d'accueil pour vérifier que le serveur est en ligne depuis un navigateur
+app.get("/", (req, res) => {
+    res.send("🚀 Le Serveur Proxy Tuteur LMD Sciences est en ligne et prêt à répondre à l'IA !");
+});
 
 // Démarrage du serveur
 app.listen(PORT, () => {

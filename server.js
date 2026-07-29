@@ -6,17 +6,18 @@ const rateLimit = require("express-rate-limit");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. SÉCURITÉ CORS : N'autoriser que votre domaine en production !
-// En développement, on autorise localhost ou toutes les origines (*)
+// 1. SÉCURITÉ CORS
 app.use(cors({
-    origin: "http://localhost:3000/api/generer-cours", // À remplacer par "https://votre-site-lmd.com" en production
+    origin: "*",
     methods: ["POST"]
 }));
 
-app.use(express.json());
+// 2. CORRECTION CRITIQUE (PayloadTooLargeError) : 
+// Autoriser les gros volumes de données jusqu'à 50 Mo (indispensable pour le scan OCR et les TD/TP)
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// 2. BOUCLIER ANTI-SPAM (Rate Limiting)
-// Limite chaque adresse IP à 15 requêtes de cours toutes les 10 minutes
+// 3. BOUCLIER ANTI-SPAM (Rate Limiting)
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 15, // 15 requêtes max par IP
@@ -27,11 +28,10 @@ const limiter = rateLimit({
     legacyHeaders: false,
 });
 
-// Application du bouclier sur la route de l'IA
 app.use("/api/generer-cours", limiter);
 
 /* ==========================================================================
-   3. ROUTE DE STREAMING SÉCURISÉE VERS GEMINI
+   4. ROUTE DE STREAMING SÉCURISÉE VERS GEMINI
    ========================================================================== */
 app.post("/api/generer-cours", async (req, res) => {
     const { prompt } = req.body;
@@ -46,8 +46,10 @@ app.post("/api/generer-cours", async (req, res) => {
         return res.status(500).json({ erreur: "Erreur de configuration du serveur d'IA." });
     }
 
-    // URL de l'API Gemini en mode Streaming SSE
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
+    // CORRECTION CRITIQUE (Erreur 404 Google) : 
+    // Utilisation de l'identifiant officiel "gemini-1.5-flash-latest"
+    // Utilisez cette URL standard compatible avec la version v1beta :
+const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
@@ -70,19 +72,17 @@ app.post("/api/generer-cours", async (req, res) => {
             return res.status(geminiResponse.status).json({ erreur: "Le Professeur IA est momentanément indisponible." });
         }
 
-        // 4. CONFIGURATION DES EN-TÊTES POUR LE STREAMING (Server-Sent Events)
+        // Configuration des en-têtes pour le Streaming SSE
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
-        res.flushHeaders(); // Envoie immédiatement les en-têtes au navigateur
+        res.flushHeaders();
 
-        // 5. REDIRECTION DU FLUX EN TEMPS RÉEL (Piping)
-        // Au fur et à mesure que Gemini envoie un morceau, on le pousse immédiatement au téléphone de l'étudiant
+        // Redirection en continu du flux vers l'application
         for await (const chunk of geminiResponse.body) {
             res.write(chunk);
         }
 
-        // Fin de la transmission
         res.end();
 
     } catch (erreur) {

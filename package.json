@@ -6,6 +6,7 @@
     "start": "electron .",
     "package-win": "electron-packager . TuteurLMD --platform=win32 --arch=x64 --out=dist/ --overwrite",
     "package-mac": "electron-packager . TuteurLMD --platform=darwin --arch=x64 --out=dist/ --overwrite"
+    "start": "node server.js"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",
@@ -20,3 +21,4 @@
   "license": "ISC",
   "type": "commonjs"
 }
+

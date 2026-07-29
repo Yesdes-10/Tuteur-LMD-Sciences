@@ -9,20 +9,19 @@ const PORT = process.env.PORT || 3000;
 // 1. SÉCURITÉ CORS
 app.use(cors({
     origin: "*",
-    methods: ["POST"]
+    methods: ["GET", "POST"]
 }));
 
-// 2. CORRECTION CRITIQUE (PayloadTooLargeError) : 
-// Autoriser les gros volumes de données jusqu'à 50 Mo (indispensable pour le scan OCR et les TD/TP)
+// 2. AUTORISER LES GROS VOLUMES DE DONNÉES (OCR & TD/TP)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// 3. BOUCLIER ANTI-SPAM (Rate Limiting)
+// 3. BOUCLIER ANTI-SPAM
 const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 15, // 15 requêtes max par IP
+    windowMs: 10 * 60 * 1000,
+    max: 15,
     message: { 
-        erreur: "⏳ Vous avez dépassé la limite de requêtes. Prenez 10 minutes pour relire vos cours avant de poser une nouvelle question !" 
+        erreur: "⏳ Limite de requêtes atteinte. Prenez 10 minutes pour relire vos cours avant de poser une nouvelle question !" 
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -30,8 +29,29 @@ const limiter = rateLimit({
 
 app.use("/api/generer-cours", limiter);
 
+// Page d'accueil pour vérifier que Render est en ligne
+app.get("/", (req, res) => {
+    res.send("🚀 Le Serveur Proxy Tuteur LMD Sciences est en ligne !");
+});
+
 /* ==========================================================================
-   4. ROUTE DE STREAMING SÉCURISÉE VERS GEMINI
+   🔍 ROUTE DE DIAGNOSTIC : VOIR VOS MODÈLES AUTORISÉS EN 1 CLIC
+   ========================================================================== */
+app.get("/api/modeles", async (req, res) => {
+    const API_KEY = process.env.GEMINI_API_KEY;
+    if (!API_KEY) return res.status(500).json({ erreur: "Clé API absente sur Render." });
+
+    try {
+        const reponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
+        const data = await reponse.json();
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ erreur: e.message });
+    }
+});
+
+/* ==========================================================================
+   4. ROUTE DE STREAMING SÉCURISÉE VERS GEMINI (gemini-2.5-flash)
    ========================================================================== */
 app.post("/api/generer-cours", async (req, res) => {
     const { prompt } = req.body;
@@ -46,10 +66,8 @@ app.post("/api/generer-cours", async (req, res) => {
         return res.status(500).json({ erreur: "Erreur de configuration du serveur d'IA." });
     }
 
-    // CORRECTION CRITIQUE (Erreur 404 Google) : 
-    // Utilisation de l'identifiant officiel "gemini-1.5-flash-latest"
-    // Utilisez cette URL standard compatible avec la version v1beta :
-const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
+    // CORRECTION 404 : Utilisation de gemini-2.5-flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
@@ -72,13 +90,11 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-
             return res.status(geminiResponse.status).json({ erreur: "Le Professeur IA est momentanément indisponible." });
         }
 
-        // Configuration des en-têtes pour le Streaming SSE
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
         res.flushHeaders();
 
-        // Redirection en continu du flux vers l'application
         for await (const chunk of geminiResponse.body) {
             res.write(chunk);
         }
@@ -94,13 +110,7 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-
         }
     }
 });
-// Route d'accueil pour vérifier que le serveur est en ligne depuis un navigateur
-app.get("/", (req, res) => {
-    res.send("🚀 Le Serveur Proxy Tuteur LMD Sciences est en ligne et prêt à répondre à l'IA !");
-});
 
-// Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`🚀 Serveur Proxy LMD opérationnel sur le port ${PORT}`);
-    console.log(`🔒 Clé API protégée et bouclier anti-spam activé.`);
 });

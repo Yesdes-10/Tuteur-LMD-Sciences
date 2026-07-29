@@ -67,7 +67,8 @@ app.post("/api/generer-cours", async (req, res) => {
     }
 
     // CORRECTION 404 : Utilisation de gemini-2.5-flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
+    // Correction officielle d'après la liste des modèles de votre clé API :
+const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],

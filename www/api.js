@@ -139,3 +139,52 @@ async function callGeminiAI(promptSystem, promptUser) {
         }
     }
 }
+/**
+ * APPEL STREAMING (Effet machine à écrire en temps réel)
+ */
+async function streamGeminiAI(promptSystem, promptUser, onChunkCallback) {
+    if (!navigator.onLine) {
+        throw new Error("HORS_LIGNE : Impossible de contacter l'IA sans connexion internet.");
+    }
+
+    const promptComplet = `${promptSystem}\n\nQuestion/Consigne : ${promptUser}`;
+    
+    const response = await fetch(PROXY_BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: promptComplet })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Erreur serveur (${response.status})`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lignes = buffer.split("\n");
+        buffer = lignes.pop(); // Garde le fragment incomplet pour le prochain tour
+
+        for (const ligne of lignes) {
+            if (ligne.startsWith("data: ")) {
+                const jsonStr = ligne.replace("data: ", "").trim();
+                if (!jsonStr) continue;
+                try {
+                    const data = JSON.parse(jsonStr);
+                    const fragment = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    if (fragment) {
+                        onChunkCallback(fragment); // Envoie le mot à l'interface !
+                    }
+                } catch (e) {
+                    // Ignore silencieusement les erreurs de parsing JSON intermédiaires
+                }
+            }
+        }
+    }
+}

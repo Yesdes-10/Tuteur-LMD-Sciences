@@ -1,4 +1,35 @@
 /* ==========================================================================
+   0. VARIABLES CSS (POUR UNE MAINTENANCE FACILE)
+   ========================================================================== */
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --bg-light: #f1f5f9;
+    --bg-dark: #e2e8f0;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+}
+
+/* ==========================================================================
+   1. VARIABLES ET BASE GLOBALE
+   ========================================================================== */
+@keyframes fadeInEffect {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+body {
+    /* Utilisation de la nouvelle police Inter */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-light), var(--bg-dark));
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+/* ==========================================================================
    1. VARIABLES ET BASE GLOBALE
    ========================================================================== */
 @keyframes fadeInEffect {
@@ -433,6 +464,17 @@ button:disabled {
 .history-date {
     font-size: 11px;
     color: #94a3b8;
+/* Nouvelles couleurs pour le mode clair */
+.tag-l1_cbg { background-color: #dcfce7; color: #166534; }
+.tag-l2_maths { background-color: #fce7f3; color: #9d174d; }
+.tag-l2_phys { background-color: #fef08a; color: #854d0e; }
+.tag-l3_info { background-color: #e0e7ff; color: #3730a3; }
+
+/* Nouvelles couleurs pour le mode sombre (Section 10) */
+body.dark-mode .tag-l1_cbg { background-color: #166534; color: #dcfce7; }
+body.dark-mode .tag-l2_maths { background-color: #9d174d; color: #fce7f3; }
+body.dark-mode .tag-l2_phys { background-color: #854d0e; color: #fef08a; }
+body.dark-mode .tag-l3_info { background-color: #3730a3; color: #e0e7ff; }
 }
 
 /* ==========================================================================
@@ -735,4 +777,141 @@ body.dark-mode .streaming-cursor::after {
 
 body.dark-mode #ai-streaming-output {
     color: #e2e8f0;
+}
+/* ==========================================================================
+   12. NAVIGATION MOBILE (BARRE D'ONGLETS / BOTTOM NAV)
+   ========================================================================== */
+
+/* Gestion des vues */
+.app-view {
+    display: none;
+    animation: fadeInEffect 0.3s ease-in-out;
+}
+
+.app-view.active-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* On ajoute de l'espace en bas du body pour que la barre ne cache pas le texte */
+body {
+    padding-bottom: 80px; 
+}
+
+/* La barre de navigation fixée en bas */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 15px 0; /* Padding ajusté pour les écrans de smartphones */
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    color: var(--text-muted, #64748b);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px 15px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: var(--bg-light, #f1f5f9);
+}
+
+.nav-item.active {
+    color: var(--primary, #4f46e5);
+}
+
+.nav-item.active .nav-icon {
+    transform: translateY(-2px) scale(1.1);
+}
+
+.nav-icon {
+    font-size: 22px;
+    transition: transform 0.2s;
+}
+
+/* Adaptation au Mode Sombre */
+body.dark-mode .bottom-nav {
+    background-color: rgba(30, 41, 59, 0.95);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .nav-item {
+    color: #94a3b8;
+}
+
+body.dark-mode .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .nav-item.active {
+    color: #818cf8;
+}
+/* ==========================================================================
+   13. SYSTÈME DE NOTIFICATIONS (TOASTS)
+   ========================================================================== */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Empêche de bloquer les clics en dessous */
+}
+
+.toast {
+    min-width: 280px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    
+    /* Animation de départ (caché vers le haut) */
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Couleurs selon le type d'alerte */
+.toast.info { border-left: 4px solid var(--primary, #4f46e5); }
+.toast.success { border-left: 4px solid #10b981; }
+.toast.error { border-left: 4px solid #ef4444; }
+.toast.warning { border-left: 4px solid #f59e0b; }
+
+/* Adaptation au Mode Sombre */
+body.dark-mode .toast {
+    background-color: #1e293b;
+    color: #f8fafc;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
